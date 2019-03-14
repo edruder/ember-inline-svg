@@ -19,8 +19,9 @@ module.exports = {
 
   options: function() {
     return merge(true, {}, {
-      paths:   ['public'],
-      optimize: { /* svgo defaults */ }
+      paths:      ['public'],
+      optimize:   { /* svgo defaults */ },
+      targetTree: 'app'
     }, (this.app && this.app.options && this.app.options.svg) || {});
   },
 
@@ -40,7 +41,13 @@ module.exports = {
     return new SVGOptmizer([tree], {svgoConfig: config});
   },
 
-  treeForApp: function(tree) {
+  treeFor: function(treeName) {
+    var targetTree = this.options().targetTree;
+
+    if (targetTree != treeName) {
+      return [];
+    }
+
     var existingPaths = this.svgPaths().filter(function(path) {
       return fs.existsSync(path);
     });
@@ -57,11 +64,9 @@ module.exports = {
 
     var optimized = this.optimizeSVGs(svgs);
 
-    var manifest = flatiron(optimized, {
+    return flatiron(optimized, {
       outputFile: 'svgs.js',
       trimExtensions: true
     });
-
-    return mergeTrees([tree, manifest]);
   }
 };
